@@ -3,7 +3,12 @@
 # ==============================================================================
 
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process powershell -ArgumentList "-NoExit -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    if ($PSCommandPath) {
+        Start-Process powershell -ArgumentList "-NoExit -NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    } else {
+        $url = "https://raw.githubusercontent.com/opcinn/yuksekfps/main/yuksekfps.ps1"
+        Start-Process powershell -ArgumentList "-NoExit -NoProfile -ExecutionPolicy Bypass -Command `"irm '$url' | iex`"" -Verb RunAs
+    }
     exit
 }
 
@@ -218,6 +223,8 @@ Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching" 
 # ------------------------------------------------------------------------------
 Write-Host ">>> [34/47] ADIM: YUKSEKFPS opcin Guc Plani Etkinlestiriliyor..." -ForegroundColor Yellow
 $pGuid = "99999999-9999-9999-9999-999999999999"
+cmd /c "powercfg /SETACTIVE SCHEME_BALANCED >nul 2>&1"
+cmd /c "powercfg /delete $pGuid >nul 2>&1"
 cmd /c "powercfg /duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 $pGuid >nul 2>&1"
 cmd /c "powercfg /changename $pGuid `"YUKSEKFPS opcin`" >nul 2>&1"
 cmd /c "powercfg /SETACTIVE $pGuid >nul 2>&1"
@@ -237,8 +244,8 @@ powercfg /setacvalueindex $pGuid 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-2
 
 Write-Host ">>> [38/47] ADIM: Kesme Yonetimi Modu Islemci 0 Olarak Ayarlaniyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\2bfc24f9-5ea2-4801-8213-3dbae01aa39d" -Name "Attributes" -Value 2
-powercfg /setacvalueindex $pGuid 48672f38-7a9a-4bb2-8bf8-3d85be19de4e 2bfc24f9-5ea2-4801-8213-3dbae01aa39d 6 2>$null
-powercfg /setdcvalueindex $pGuid 48672f38-7a9a-4bb2-8bf8-3d85be19de4e 2bfc24f9-5ea2-4801-8213-3dbae01aa39d 6 2>$null
+powercfg /setacvalueindex $pGuid 48672f38-7a9a-4bb2-8bf8-3d85be19de4e 2bfc24f9-5ea2-4801-8213-3dbae01aa39d 5 2>$null
+powercfg /setdcvalueindex $pGuid 48672f38-7a9a-4bb2-8bf8-3d85be19de4e 2bfc24f9-5ea2-4801-8213-3dbae01aa39d 5 2>$null
 
 Write-Host ">>> [39/47] ADIM: Ekran Kartı Guc Performansi Maksimuma Aliniyor..." -ForegroundColor Yellow
 powercfg /setacvalueindex $pGuid 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 002 2>$null
