@@ -34,12 +34,19 @@ function Set-Reg {
 }
 
 # ------------------------------------------------------------------------------
-# 1. TEMEL TWEAKLER & CTT GELİŞMİŞ SİSTEM AYARLARI
+# 1. GÜVENLİK YEDEĞİ & TEMEL TWEAKLER
 # ------------------------------------------------------------------------------
-Write-Host ">>> [01/47] ADIM: Etkinlik Gecmisi Kapatiliyor..." -ForegroundColor Yellow
+Write-Host ">>> [01/47] ADIM: Sistem Geri Yukleme Noktasi Olusturuluyor..." -ForegroundColor Yellow
+try {
+    Enable-ComputerRestore -Drive "C:\" -ErrorAction SilentlyContinue
+    Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0
+    Checkpoint-Computer -Description "YuksekFPS_Final_RestorePoint" -RestorePointType "MODIFY_SETTINGS" -ErrorAction SilentlyContinue
+} catch {}
+
+Write-Host ">>> [02/47] ADIM: Etkinlik Gecmisi Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Value 0
 
-Write-Host ">>> [02/47] ADIM: BitLocker Kontrol Ediliyor ve Otomatik Sifreleme Engelleniyor..." -ForegroundColor Yellow
+Write-Host ">>> [03/47] ADIM: BitLocker Kontrol Ediliyor ve Otomatik Sifreleme Engelleniyor..." -ForegroundColor Yellow
 try {
     if (Get-Command Get-BitLockerVolume -ErrorAction SilentlyContinue) {
         $bl = Get-BitLockerVolume -MountPoint "C:" -ErrorAction SilentlyContinue
@@ -48,33 +55,26 @@ try {
     Set-Reg -Path "HKLM:\SYSTEM\CurrentControlSet\Control\BitLocker" -Name "PreventDeviceEncryption" -Value 1
 } catch {}
 
-Write-Host ">>> [03/47] ADIM: Tuketici Ozellikleri ve Reklamlar Kapatiliyor..." -ForegroundColor Yellow
+Write-Host ">>> [04/47] ADIM: Tuketici Ozellikleri ve Reklamlar Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name "DisableWindowsConsumerFeatures" -Value 1
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name "DisableConsumerAccountStateContent" -Value 1
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent" -Name "DisableCloudOptimizedContent" -Value 1
 
-Write-Host ">>> [04/47] ADIM: Teslim İyilestirme Kapatiliyor..." -ForegroundColor Yellow
+Write-Host ">>> [05/47] ADIM: Teslim İyilestirme Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization" -Name "DODownloadMode" -Value 0
 
-Write-Host ">>> [05/47] ADIM: Sag Tik Gorevi Sonlandir Ekleniyor..." -ForegroundColor Yellow
+Write-Host ">>> [06/47] ADIM: Sag Tik Gorevi Sonlandir Ekleniyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarEndTask" -Value 1
 
-Write-Host ">>> [06/47] ADIM: Otomatik Klasor Kesfi Kapatiliyor..." -ForegroundColor Yellow
+Write-Host ">>> [07/47] ADIM: Otomatik Klasor Kesfi Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Bags\AllFolders\Shell" -Name "FolderType" -Type "String" -Value "NotSpecified"
 
-Write-Host ">>> [07/47] ADIM: Konum Takibi Kapatiliyor..." -ForegroundColor Yellow
+Write-Host ">>> [08/47] ADIM: Konum Takibi Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location" -Name "Value" -Type "String" -Value "Deny"
 
-Write-Host ">>> [08/47] ADIM: MS Store ve Bing Arama Onerileri Kapatiliyor..." -ForegroundColor Yellow
+Write-Host ">>> [09/47] ADIM: MS Store ve Bing Arama Onerileri Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableSearchBoxSuggestions" -Value 1
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "DisableWebSearch" -Value 1
-
-Write-Host ">>> [09/47] ADIM: Sistem Geri Yukleme Noktasi Olusturuluyor..." -ForegroundColor Yellow
-try {
-    Enable-ComputerRestore -Drive "C:\" -ErrorAction SilentlyContinue
-    Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRestore" -Name "SystemRestorePointCreationFrequency" -Value 0
-    Checkpoint-Computer -Description "YuksekFPS_Final_RestorePoint" -RestorePointType "MODIFY_SETTINGS" -ErrorAction SilentlyContinue
-} catch {}
 
 Write-Host ">>> [10/47] ADIM: Gereksiz Hizmetler Elle Moduna Aliniyor..." -ForegroundColor Yellow
 Set-Service -Name "RemoteRegistry" -StartupType Manual -ErrorAction SilentlyContinue
@@ -164,17 +164,26 @@ Set-Reg -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personaliz
 # ------------------------------------------------------------------------------
 Write-Host ">>> [28/47] ADIM: Ses İyilestirmeleri Yapiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKCU:\Software\Microsoft\Multimedia\Audio" -Name "UserDuckingPreference" -Value 3
-Set-Reg -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Value 1
+Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\BootAnimation" -Name "DisableStartupSound" -Value 1
 
 Write-Host ">>> [29/47] ADIM: Fare Ivmesi Kapatiliyor..." -ForegroundColor Yellow
 Set-Reg -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Type "String" -Value "0"
 Set-Reg -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Type "String" -Value "0"
 Set-Reg -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Type "String" -Value "0"
 
-Write-Host ">>> [30/47] ADIM: Oyun Optimizasyonlari (GameDVR Off, HAGS ON)..." -ForegroundColor Yellow
+Write-Host ">>> [30/47] ADIM: Oyun Optimizasyonlari (GameDVR Off, FSO & HAGS ON)..." -ForegroundColor Yellow
 Set-Reg -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0
 Set-Reg -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" -Name "AllowGameDVR" -Value 0
 Set-Reg -Path "HKCU:\Software\Microsoft\GameBar" -Name "AutoGameModeEnabled" -Value 1
+
+# Fullscreen Optimizations (FSO)
+Set-Reg -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_DXGIHonorFSEWindowsCompatible" -Value 0
+Set-Reg -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_FSEBehaviorMode" -Value 0
+Remove-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_FSEBehavior" -ErrorAction SilentlyContinue
+Set-Reg -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_HonorUserFSEBehaviorMode" -Value 0
+
+# Windowed Games Optimizations
+Set-Reg -Path "HKCU:\Software\Microsoft\DirectX\UserGpuPreferences" -Name "DirectXUserGlobalSettings" -Type "String" -Value "VRROptimizeEnable=0;SwapEffectUpgradeEnable=1;"
 
 Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NetworkThrottlingIndex" -Value 4294967295
 Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "SystemResponsiveness" -Value 0
@@ -186,10 +195,10 @@ Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\Sys
 Set-Reg -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -Value 2
 Set-Reg -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\kernel" -Name "GlobalTimerResolutionRequests" -Value 1
 
-Write-Host ">>> [31/47] ADIM: Multiplane Overlay (MPO) Kapatiliyor (Compatibility Mode)..." -ForegroundColor Yellow
-Set-Reg -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -Value 5
+Write-Host ">>> [31/47] ADIM: Multiplane Overlay (MPO) Etkinlestiriliyor..." -ForegroundColor Yellow
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Dwm" -Name "OverlayTestMode" -ErrorAction SilentlyContinue
 
-Write-Host ">>> [32/47] ADIM: Ağ Gecikmesi Dusuruyor (Nagle Algoritmasi Kapatiliyor)..." -ForegroundColor Yellow
+Write-Host ">>> [32/47] ADIM: Ağ Gecikmesi Dusuruluyor (Nagle Algoritmasi Kapatiliyor)..." -ForegroundColor Yellow
 $netInterfaces = Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces"
 foreach ($interface in $netInterfaces) {
     Set-Reg -Path $interface.PSPath -Name "TcpAckFrequency" -Value 1
@@ -226,29 +235,35 @@ Write-Host ">>> [37/47] ADIM: Islemci Cekirdek Parki Kapatiliyor (%100 Güc)..."
 powercfg /setacvalueindex $pGuid 54533251-82be-4824-96c1-47b60b740d00 893dee8e-2bef-41e0-89c6-b55d0929964c 0x00000064 2>$null
 powercfg /setacvalueindex $pGuid 54533251-82be-4824-96c1-47b60b740d00 bc5038f7-23e0-4960-96da-33abaf5935ec 0x00000064 2>$null
 
-Write-Host ">>> [38/47] ADIM: Ekran Kartı Guc Performansi Maksimuma Aliniyor..." -ForegroundColor Yellow
+Write-Host ">>> [38/47] ADIM: Kesme Yonetimi Modu Islemci 0 Olarak Ayarlaniyor..." -ForegroundColor Yellow
+Set-Reg -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Power\PowerSettings\48672f38-7a9a-4bb2-8bf8-3d85be19de4e\2bfc24f9-5ea2-4801-8213-3dbae01aa39d" -Name "Attributes" -Value 2
+powercfg /setacvalueindex $pGuid 48672f38-7a9a-4bb2-8bf8-3d85be19de4e 2bfc24f9-5ea2-4801-8213-3dbae01aa39d 6 2>$null
+powercfg /setdcvalueindex $pGuid 48672f38-7a9a-4bb2-8bf8-3d85be19de4e 2bfc24f9-5ea2-4801-8213-3dbae01aa39d 6 2>$null
+
+Write-Host ">>> [39/47] ADIM: Ekran Kartı Guc Performansi Maksimuma Aliniyor..." -ForegroundColor Yellow
 powercfg /setacvalueindex $pGuid 44f3beca-a7c0-460e-9df2-bb8b99e0cba6 3619c3f2-afb2-4afc-b0e9-e7fef372de36 002 2>$null
+cmd /c "powercfg /SETACTIVE $pGuid >nul 2>&1"
 
 # ------------------------------------------------------------------------------
 # 6. OFFICIAL RUNTIMES, NVIDIA SETTINGS & APPLICATIONS VIA WINGET
 # ------------------------------------------------------------------------------
 if (Test-Connection -ComputerName "8.8.8.8" -Count 1 -Quiet -ErrorAction SilentlyContinue) {
-    Write-Host ">>> [39/47] ADIM: 7-Zip Yukleniyor..." -ForegroundColor Yellow
+    Write-Host ">>> [40/47] ADIM: 7-Zip Yukleniyor..." -ForegroundColor Yellow
     winget install --id 7zip.7zip --silent --accept-package-agreements --accept-source-agreements
 
-    Write-Host ">>> [40/47] ADIM: DirectX Yukleniyor..." -ForegroundColor Yellow
+    Write-Host ">>> [41/47] ADIM: DirectX Yukleniyor..." -ForegroundColor Yellow
     winget install --id Microsoft.DirectX --silent --accept-package-agreements --accept-source-agreements
 
-    Write-Host ">>> [41/47] ADIM: Visual C++ (x64) Yukleniyor..." -ForegroundColor Yellow
+    Write-Host ">>> [42/47] ADIM: Visual C++ (x64) Yukleniyor..." -ForegroundColor Yellow
     winget install --id Microsoft.VCRedist.2015+.x64 --silent --accept-package-agreements --accept-source-agreements
 
-    Write-Host ">>> [42/47] ADIM: Visual C++ (x86) Yukleniyor..." -ForegroundColor Yellow
+    Write-Host ">>> [43/47] ADIM: Visual C++ (x86) Yukleniyor..." -ForegroundColor Yellow
     winget install --id Microsoft.VCRedist.2015+.x86 --silent --accept-package-agreements --accept-source-agreements
 
-    Write-Host ">>> [43/47] ADIM: Nvidia Control Panel Yukleniyor..." -ForegroundColor Yellow
+    Write-Host ">>> [44/47] ADIM: Nvidia Control Panel Yukleniyor..." -ForegroundColor Yellow
     winget install --id 9NF8H658275A --silent --accept-package-agreements --accept-source-agreements
 
-    Write-Host ">>> [44/47] ADIM: Onerilen NVIDIA FPS Ayarlari Uygulaniyor..." -ForegroundColor Yellow
+    Write-Host ">>> [45/47] ADIM: Onerilen NVIDIA FPS Ayarlari Uygulaniyor..." -ForegroundColor Yellow
     try {
         # Unblock Drs files
         $drsPath = "C:\ProgramData\NVIDIA Corporation\Drs"
